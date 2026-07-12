@@ -8,11 +8,22 @@ export const register = async (req, res, next) => {
   try {
     const { name, email, password, role, department } = req.body;
 
+    // DEBUG: confirm what arrives at the backend
+    console.log('[DEBUG][/auth/register] body:', {
+      name,
+      email,
+      role,
+      department,
+      passwordPresent: typeof password === 'string' && password.length > 0,
+    });
+
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       throw new ApiError(400, 'User with this email already exists');
     }
 
+    // DEBUG: confirm DB context + attempt write
+    console.log('[DEBUG][/auth/register] creating user in Mongo...');
     const user = await User.create({
       name,
       email,
@@ -20,6 +31,7 @@ export const register = async (req, res, next) => {
       role,
       department,
     });
+    console.log('[DEBUG][/auth/register] created user id:', user._id?.toString?.() || user._id);
 
     user.password = undefined;
 
@@ -32,8 +44,11 @@ export const register = async (req, res, next) => {
 
     const token = generateToken(user._id);
 
-    return res.status(201).json(new ApiResponse(201, { user, token }, 'User registered successfully'));
+    return res
+      .status(201)
+      .json(new ApiResponse(201, { user, token }, 'User registered successfully'));
   } catch (error) {
+    console.error('[DEBUG][/auth/register] error:', error?.message || error);
     next(error);
   }
 };

@@ -3,10 +3,10 @@ import React, { createContext, useState, useContext } from 'react';
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState({ email: 'admin@assetflow.corp', role: 'Operations Admin' });
+  const [user, setUser] = useState(null);
 
-  const login = (email) => {
-    setUser({ email, role: 'Operations Admin' });
+  const login = (email, role) => {
+    setUser({ email, role: role || 'employee' });
   };
 
   const logout = () => {
@@ -23,3 +23,4 @@ export function AuthProvider({ children }) {
 export function useAuthContext() {
   return useContext(AuthContext);
 }
+

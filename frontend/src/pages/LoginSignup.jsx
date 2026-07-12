@@ -1,28 +1,60 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuthContext } from '../context/AuthContext';
+import { loginRequest, registerRequest } from '../api/authApi';
 
 export default function LoginSignup() {
   const [activeTab, setActiveTab] = useState('login');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { login } = useAuthContext() || {};
 
-  const handleLoginSubmit = (e) => {
+  const handleLoginSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
+
+    const form = e.target;
+    const email = form.querySelector('#login-email')?.value;
+    const password = form.querySelector('#login-password')?.value;
+
+    try {
+      const data = await loginRequest({ email, password });
+      login?.(data?.user?.email || email, data?.user?.role);
       navigate('/dashboard');
-    }, 1200);
+    } catch (err) {
+      const message = err?.response?.data?.message || err?.message || 'Login failed';
+      alert(message);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleSignupSubmit = (e) => {
+  const handleSignupSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setTimeout(() => {
+
+    const form = e.target;
+    const name = form.querySelector('#signup-name')?.value;
+    const email = form.querySelector('#signup-email')?.value;
+    const password = form.querySelector('#signup-password')?.value;
+    const confirmPassword = form.querySelector('#confirm-password')?.value;
+
+    if (password !== confirmPassword) {
       setLoading(false);
-      alert('Account created! Logging you in...');
+      alert('Passwords do not match');
+      return;
+    }
+
+    try {
+      const data = await registerRequest({ name, email, password });
+      login?.(data?.user?.email || email, data?.user?.role);
       navigate('/dashboard');
-    }, 1200);
+    } catch (err) {
+      const message = err?.response?.data?.message || err?.message || 'Registration failed';
+      alert(message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
